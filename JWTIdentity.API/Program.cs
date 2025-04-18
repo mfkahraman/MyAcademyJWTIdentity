@@ -3,6 +3,7 @@ using JWTIdentity.API.Entities;
 using JWTIdentity.API.Options;
 using JWTIdentity.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
@@ -35,6 +36,14 @@ builder.Services.AddAuthentication(config =>
         ClockSkew = TimeSpan.Zero,
         NameClaimType = ClaimTypes.Name,
     };
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
+            .RequireAuthenticatedUser()
+            .Build();
+
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
