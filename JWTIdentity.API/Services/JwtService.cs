@@ -9,10 +9,11 @@ using JwtOptions = JWTIdentity.API.Options;
 
 namespace JWTIdentity.API.Services
 {
-    public class JwtService(IOptions<JwtOptions.TokenOptions> tokenOptionsAccessor, UserManager<AppUser> userManager) : IJwtService
+    public class JwtService(IOptions<JwtOptions.TokenOptions> tokenOptionsAccessor,
+                            UserManager<AppUser> userManager,
+                            JwtSecurityTokenHandler jwtSecurityTokenHandler) : IJwtService
     {
         private readonly JwtOptions.TokenOptions _tokenOptions = tokenOptionsAccessor.Value;
-        private readonly UserManager<AppUser> _userManager = userManager;
 
         public async Task<string> CreateTokenAsync(AppUser user)
         {
@@ -21,7 +22,7 @@ namespace JWTIdentity.API.Services
 
             SymmetricSecurityKey symmetricSecurityKey = new(Encoding.UTF8.GetBytes(_tokenOptions.Key));
 
-            var userRoles = await _userManager.GetRolesAsync(user);
+            var userRoles = await userManager.GetRolesAsync(user);
 
             List<Claim> claims = new()
             {
@@ -41,9 +42,7 @@ namespace JWTIdentity.API.Services
                 signingCredentials: new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256)
                 );
 
-            JwtSecurityTokenHandler handler = new();
-
-            var token = handler.WriteToken(jwtSecurityToken);
+            var token = jwtSecurityTokenHandler.WriteToken(jwtSecurityToken);
 
             return token;
         }

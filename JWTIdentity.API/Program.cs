@@ -3,9 +3,9 @@ using JWTIdentity.API.Entities;
 using JWTIdentity.API.Options;
 using JWTIdentity.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
@@ -13,19 +13,23 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+//JwtService registration
 builder.Services.AddScoped<IJwtService, JwtService>();
 
-builder.Services.AddAuthentication(config =>
+// JwtSecurityTokenHandler registration
+builder.Services.AddSingleton<JwtSecurityTokenHandler>();
+
+builder.Services.AddAuthentication(cfg =>
 {
-    config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    config.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options=>
+    cfg.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    cfg.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opt=>
 {
     var jwtTokenOptions = builder.Configuration.GetSection("TokenOptions").Get<TokenOptions>()
     ?? throw new InvalidOperationException("TokenOptions configuration is missing or invalid.");
 
-    options.RequireHttpsMetadata = false;
-    options.TokenValidationParameters = new()
+    opt.RequireHttpsMetadata = false;
+    opt.TokenValidationParameters = new()
     {
         ValidateIssuer = true,
         ValidateAudience = true,
