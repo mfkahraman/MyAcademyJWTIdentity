@@ -21,7 +21,8 @@ builder.Services.AddAuthentication(config =>
     config.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options=>
 {
-    var jwtTokenOptions = builder.Configuration.GetSection("TokenOptions").Get<TokenOptions>();
+    var jwtTokenOptions = builder.Configuration.GetSection("TokenOptions").Get<TokenOptions>()
+    ?? throw new InvalidOperationException("TokenOptions configuration is missing or invalid.");
 
     options.RequireHttpsMetadata = false;
     options.TokenValidationParameters = new()
@@ -32,19 +33,18 @@ builder.Services.AddAuthentication(config =>
         ValidateLifetime = true,
         ValidIssuer = jwtTokenOptions.Issuer,
         ValidAudience = jwtTokenOptions.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtTokenOptions.Key)),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtTokenOptions.Key ?? throw new InvalidOperationException("TokenOptions.Key is missing."))),
         ClockSkew = TimeSpan.Zero,
         NameClaimType = ClaimTypes.Name,
     };
 });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
-            .RequireAuthenticatedUser()
-            .Build();
-
-});
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("Default", policy =>
+    {
+        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
+        policy.RequireAuthenticatedUser();
+    });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {

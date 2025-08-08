@@ -1,5 +1,5 @@
 ﻿using JWTIdentity.API.Entities;
-using jwt = JWTIdentity.API.Options;
+using JwtOptions = JWTIdentity.API.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -9,18 +9,15 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace JWTIdentity.API.Services
 {
-    public class JwtService : IJwtService
+    public class JwtService(JwtOptions.TokenOptions _tokenOptions,
+                            UserManager<AppUser> _userManager) : IJwtService
     {
-        private readonly jwt.TokenOptions _tokenOptions;
-        private readonly UserManager<AppUser> _userManager;
 
-        public JwtService(IOptions<jwt.TokenOptions> tokenOptions, UserManager<AppUser> userManager)
-        {
-            _tokenOptions = tokenOptions.Value;
-            _userManager = userManager;
-        }
         public async Task<string> CreateTokenAsync(AppUser user)
         {
+            if (string.IsNullOrEmpty(_tokenOptions.Key))
+                throw new InvalidOperationException("JWT signing key is not configured.");
+
             SymmetricSecurityKey symmetricSecurityKey = new(Encoding.UTF8.GetBytes(_tokenOptions.Key));
 
             var userRoles = await _userManager.GetRolesAsync(user);
@@ -28,10 +25,10 @@ namespace JWTIdentity.API.Services
             List<Claim> claims = new()
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Role, userRoles.FirstOrDefault()),
-                new Claim("fullName", String.Join("", user.Name, user.Surnname)),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+                new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
+                new Claim(ClaimTypes.Role, userRoles.FirstOrDefault() ?? string.Empty),
+                new Claim("fullName", String.Join("", user.Name, user.Surname)),
             };
 
             JwtSecurityToken jwtSecurityToken = new(

@@ -9,8 +9,8 @@ namespace JWTIdentity.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UsersController(UserManager<AppUser> userManager, 
-                                IJwtService jwtService, 
+    public class UsersController(UserManager<AppUser> userManager,
+                                IJwtService jwtService,
                                 RoleManager<AppRole> roleManager) : ControllerBase
     {
         [HttpPost("register")]
@@ -21,8 +21,13 @@ namespace JWTIdentity.API.Controllers
                 UserName = model.UserName,
                 Email = model.Email,
                 Name = model.Name,
-                Surnname = model.Surname
+                Surname = model.Surname
             };
+
+            if (model.Password == null)
+            {
+                return BadRequest("Şifre boş olamaz");
+            }
 
             var result = await userManager.CreateAsync(user, model.Password);
 
@@ -58,7 +63,7 @@ namespace JWTIdentity.API.Controllers
 
             var result = await userManager.CheckPasswordAsync(user, model.Password);
 
-            if(!result)
+            if (!result)
             {
                 return BadRequest("Şifre hatalı");
             }

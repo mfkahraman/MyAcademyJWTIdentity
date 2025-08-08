@@ -4,7 +4,7 @@ namespace JWTIdentity.API.Entities
 {
     public class AppUser : IdentityUser<int>
     {
-        public string Name { get; set; }
-        public string Surnname { get; set; }
+        public required string Name { get; set; }
+        public string? Surname { get; set; }
     }
 }
