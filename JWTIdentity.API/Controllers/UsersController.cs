@@ -1,7 +1,6 @@
 ﻿using JWTIdentity.API.Entities;
-using JWTIdentity.API.Models;
+using JWTIdentity .API.Models;
 using JWTIdentity.API.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 

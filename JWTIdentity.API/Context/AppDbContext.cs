@@ -4,12 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JWTIdentity.API.Context
 {
-    public class AppDbContext : IdentityDbContext<AppUser, AppRole, int>
+    public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<AppUser, AppRole, int>(options)
     {
-        public AppDbContext(DbContextOptions options) : base(options)
-        {
-        }
-
         public DbSet<Product> Products { get; set; }
     }
 }
